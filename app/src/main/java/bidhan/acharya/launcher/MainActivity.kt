@@ -1,11 +1,13 @@
 package bidhan.acharya.launcher
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -17,12 +19,10 @@ import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import androidx.core.net.toUri
 import java.io.File
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     data class AppInfo(
         val name: String,
@@ -43,9 +43,10 @@ class MainActivity : AppCompatActivity() {
         appListView.setOnItemClickListener { _, _, position, _ ->
             val clickedApp = appList[position]
             val launchIntent = packageManager.getLaunchIntentForPackage(clickedApp.packageName)
-            if (launchIntent != null)
+            if (launchIntent != null) {
                 startActivity(launchIntent)
-            else
+                finish()
+            } else
                 Toast.makeText(this, "App not found or has no launcher activity", Toast.LENGTH_SHORT).show()
         }
         appListView.setOnItemLongClickListener { _, _, position, _ ->
@@ -80,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         appOtpView.findViewById<Button>(R.id.appInfoBtn).setOnClickListener {
             dialog.dismiss()
             startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = "package:${app.packageName}".toUri()
+                data = Uri.parse("package:${app.packageName}")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             })
         }
