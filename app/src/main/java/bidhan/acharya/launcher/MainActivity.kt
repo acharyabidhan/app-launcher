@@ -15,8 +15,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.GridView
 import android.widget.ImageView
-import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.FileProvider
@@ -36,7 +36,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val appListView = findViewById<ListView>(R.id.appListView)
+        val appListView = findViewById<GridView>(R.id.appGridView)
         appList.addAll(getApps().sortedBy { it.name.lowercase() })
         appListViewAdapter = AppListViewAdapter(this, appList)
         appListView.adapter = appListViewAdapter
@@ -50,7 +50,7 @@ class MainActivity : Activity() {
                 Toast.makeText(this, "App not found or has no launcher activity", Toast.LENGTH_SHORT).show()
         }
         appListView.setOnItemLongClickListener { _, _, position, _ ->
-            showColorPickerDialog(appList[position])
+            showAppOptionsDialog(appList[position])
             true
         }
         appListViewAdapter.notifyDataSetChanged()
@@ -62,6 +62,7 @@ class MainActivity : Activity() {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
         val apps = pm.queryIntentActivities(intent, 0)
+        apps.removeIf { it.activityInfo.packageName == packageName }
         return apps.map { resolveInfo ->
             AppInfo(
                 name = resolveInfo.loadLabel(pm).toString(),
@@ -71,7 +72,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun showColorPickerDialog(app: AppInfo) {
+    private fun showAppOptionsDialog(app: AppInfo) {
         val inflater: LayoutInflater = LayoutInflater.from(this)
         val appOtpView = inflater.inflate(R.layout.app_option_dialog, null)
         val builder = AlertDialog.Builder(this)
@@ -137,11 +138,9 @@ class AppListViewAdapter(
         val item = getItem(position)
         val appIcon = itemView.findViewById<ImageView>(R.id.appIcon)
         val appName = itemView.findViewById<TextView>(R.id.appName)
-        val appPackage = itemView.findViewById<TextView>(R.id.appPackage)
         if (item != null) {
-           appIcon.setImageDrawable(item.icon)
+            appIcon.setImageDrawable(item.icon)
             appName.text = item.name
-            appPackage.text = item.packageName
         }
         return itemView
     }

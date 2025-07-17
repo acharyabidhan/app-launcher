@@ -1,37 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="10dp"
-    android:gravity="center"
+    android:gravity="top"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <ImageView
+        android:layout_gravity="center"
         android:id="@+id/appIcon"
         android:layout_margin="10dp"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:src="@drawable/baseline_apps_24"
         android:contentDescription="App Icon" />
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/appName"
-            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
-            android:text="Launcher"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/appPackage"
-            android:text="Package name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-    </LinearLayout>
+    <TextView
+        android:id="@+id/appName"
+        android:text="App name"
+        android:layout_gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>
