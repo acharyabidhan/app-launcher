@@ -6,10 +6,11 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +23,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.core.view.WindowCompat
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -43,12 +45,15 @@ class MainActivity : Activity() {
 
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            window.navigationBarColor = android.R.attr.windowBackground
-            window.statusBarColor = android.R.attr.windowBackground
-            window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-        }
+        val isDarkTheme = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val backgroundColor = TypedValue().apply { theme.resolveAttribute(android.R.attr.windowBackground, this, true) }.data
+        window.navigationBarColor = backgroundColor
+        window.statusBarColor = backgroundColor
+
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.isAppearanceLightStatusBars = !isDarkTheme
+        insetsController.isAppearanceLightNavigationBars = !isDarkTheme
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         progressBar = findViewById(R.id.progressBar)
