@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -17,9 +17,16 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.GridView
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class MainActivity : Activity() {
@@ -32,12 +39,20 @@ class MainActivity : Activity() {
 
     private val appList: MutableList<AppInfo> = mutableListOf()
     private lateinit var appListViewAdapter: AppListViewAdapter
+    private lateinit var progressBar: ProgressBar
 
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            window.navigationBarColor = android.R.attr.windowBackground
+            window.statusBarColor = android.R.attr.windowBackground
+            window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        }
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        progressBar = findViewById(R.id.progressBar)
         val appListView = findViewById<GridView>(R.id.appGridView)
-        appList.addAll(getApps().sortedBy { it.name.lowercase() })
         appListViewAdapter = AppListViewAdapter(this, appList)
         appListView.adapter = appListViewAdapter
         appListView.setOnItemClickListener { _, _, position, _ ->
@@ -53,7 +68,26 @@ class MainActivity : Activity() {
             showAppOptionsDialog(appList[position])
             true
         }
-        appListViewAdapter.notifyDataSetChanged()
+        loadAndDisplayApps()
+    }
+
+    suspend fun loadApps(): List<AppInfo> {
+        return withContext(Dispatchers.IO) {
+            getApps().sortedBy { it.name.lowercase() }
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun loadAndDisplayApps() {
+        GlobalScope.launch {
+            val apps = loadApps()
+            withContext(Dispatchers.Main) {
+                appList.clear()
+                appList.addAll(apps)
+                appListViewAdapter.notifyDataSetChanged()
+                progressBar.visibility = View.GONE
+            }
+        }
     }
 
     private fun getApps(): List<AppInfo> {
@@ -82,7 +116,7 @@ class MainActivity : Activity() {
         appOtpView.findViewById<Button>(R.id.appInfoBtn).setOnClickListener {
             dialog.dismiss()
             startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.parse("package:${app.packageName}")
+                data = "package:${app.packageName}".toUri()
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             })
         }
