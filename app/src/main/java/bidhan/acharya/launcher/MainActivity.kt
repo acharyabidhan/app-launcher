@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.TypedValue
@@ -16,6 +17,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.GridView
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -23,7 +25,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -56,6 +61,19 @@ class MainActivity : Activity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val mainContent = findViewById<FrameLayout>(R.id.mainContent)
+        if (Build.VERSION.SDK_INT >= 34) {
+            ViewCompat.setOnApplyWindowInsetsListener(mainContent) { view, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                val statusBarHeight = systemBars.top
+                val navBarHeight = systemBars.bottom
+                view.updatePadding(
+                    top = statusBarHeight,
+                    bottom = navBarHeight
+                )
+                insets
+            }
+        }
         progressBar = findViewById(R.id.progressBar)
         val appListView = findViewById<GridView>(R.id.appGridView)
         appListViewAdapter = AppListViewAdapter(this, appList)
